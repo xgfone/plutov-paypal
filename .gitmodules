@@ -1,3 +1,0 @@
-[submodule "openapi-specs"]
-	path = openapi-specs
-	url = https://github.com/paypal/paypal-rest-api-specifications
