@@ -1,3 +1,3 @@
-module github.com/plutov/paypal
+module github.com/xgfone/plutov-paypal
 
 go 1.18
