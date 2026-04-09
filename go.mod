@@ -1,3 +1,3 @@
-module github.com/plutov/paypal/v4
+module github.com/plutov/paypal
 
 go 1.18
