@@ -560,7 +560,7 @@ type (
 
 	// CaptureOrderRequest - https://developer.paypal.com/docs/api/orders/v2/#orders_capture
 	CaptureOrderRequest struct {
-		PaymentSource *PaymentSource `json:"payment_source"`
+		PaymentSource *PaymentSource `json:"payment_source,omitempty"`
 	}
 
 	// CaptureOrderMockResponse - https://developer.paypal.com/docs/api-basics/sandbox/request-headers/#test-api-error-handling-routines
@@ -571,6 +571,7 @@ type (
 	// RefundOrderRequest - https://developer.paypal.com/docs/api/payments/v2/#captures_refund
 	RefundCaptureRequest struct {
 		Amount      *Money `json:"amount,omitempty"`
+		CustomID    string `json:"custom_id,omitempty"`
 		InvoiceID   string `json:"invoice_id,omitempty"`
 		NoteToPayer string `json:"note_to_payer,omitempty"`
 	}
@@ -832,8 +833,8 @@ type (
 		ReferenceID        string              `json:"reference_id"`
 		Amount             *PurchaseUnitAmount `json:"amount,omitempty"`
 		Payee              *PayeeForOrders     `json:"payee,omitempty"`
-		Payments           *CapturedPayments   `json:"payments,omitempty"`
-		PaymentInstruction *PaymentInstruction `json:"payment_instruction,omitempty"`
+		Payments           CapturedPayments    `json:"payments,omitempty"`
+		PaymentInstruction PaymentInstruction  `json:"payment_instruction,omitempty"`
 		Description        string              `json:"description,omitempty"`
 		CustomID           string              `json:"custom_id,omitempty"`
 		InvoiceID          string              `json:"invoice_id,omitempty"`
@@ -903,14 +904,14 @@ type (
 
 	// Order struct
 	Order struct {
-		ID            string                 `json:"id,omitempty"`
-		Status        string                 `json:"status,omitempty"`
-		Intent        string                 `json:"intent,omitempty"`
-		Payer         *PayerWithNameAndPhone `json:"payer,omitempty"`
-		PurchaseUnits []PurchaseUnit         `json:"purchase_units,omitempty"`
-		Links         []Link                 `json:"links,omitempty"`
-		CreateTime    *time.Time             `json:"create_time,omitempty"`
-		UpdateTime    *time.Time             `json:"update_time,omitempty"`
+		ID            string                `json:"id,omitempty"`
+		Status        string                `json:"status,omitempty"`
+		Intent        string                `json:"intent,omitempty"`
+		Payer         PayerWithNameAndPhone `json:"payer,omitempty"`
+		PurchaseUnits []PurchaseUnit        `json:"purchase_units,omitempty"`
+		Links         []Link                `json:"links,omitempty"`
+		CreateTime    *time.Time            `json:"create_time,omitempty"`
+		UpdateTime    *time.Time            `json:"update_time,omitempty"`
 	}
 
 	// ExchangeRate struct
@@ -933,14 +934,33 @@ type (
 		PlatformFees                  []PlatformFee `json:"platform_fees,omitempty"`
 	}
 
+	CaptureRelatedIds struct {
+		OrderID         string `json:"order_id,omitempty"`
+		CaptureID       string `json:"capture_id,omitempty"`
+		AuthorizationID string `json:"authorization_id,omitempty"`
+	}
+
+	CaptureSupplementaryData struct {
+		RelatedIDs CaptureRelatedIds `json:"related_ids,omitzero"`
+	}
+
 	// CaptureAmount struct
 	CaptureAmount struct {
-		Status                    string                     `json:"status,omitempty"`
-		ID                        string                     `json:"id,omitempty"`
-		CustomID                  string                     `json:"custom_id,omitempty"`
-		Amount                    *PurchaseUnitAmount        `json:"amount,omitempty"`
-		SellerProtection          *SellerProtection          `json:"seller_protection,omitempty"`
-		SellerReceivableBreakdown *SellerReceivableBreakdown `json:"seller_receivable_breakdown,omitempty"`
+		ID        string `json:"id,omitempty"`
+		CustomID  string `json:"custom_id,omitempty"`
+		InvoiceID string `json:"invoice_id,omitempty"`
+
+		CreateTime time.Time `json:"create_time,omitempty"`
+		UpdateTime time.Time `json:"update_time,omitempty"`
+
+		Amount PurchaseUnitAmount `json:"amount,omitzero"`
+
+		Status            string                   `json:"status,omitempty"`
+		StatusDetails     CaptureStatusDetails     `json:"status_details,omitzero"`
+		SupplementaryData CaptureSupplementaryData `json:"supplementary_data,omitzero"`
+
+		SellerProtection          SellerProtection          `json:"seller_protection,omitzero"`
+		SellerReceivableBreakdown SellerReceivableBreakdown `json:"seller_receivable_breakdown,omitzero"`
 	}
 
 	// CapturedPayments has the amounts for a captured order
@@ -961,6 +981,8 @@ type (
 	CapturedPurchaseUnit struct {
 		Items       []CapturedPurchaseItem       `json:"items,omitempty"`
 		ReferenceID string                       `json:"reference_id"`
+		InvoiceID   string                       `json:"invoice_id,omitempty"`
+		CustomID    string                       `json:"custom_id,omitempty"`
 		Shipping    CapturedPurchaseUnitShipping `json:"shipping,omitempty"`
 		Payments    *CapturedPayments            `json:"payments,omitempty"`
 	}
@@ -971,21 +993,21 @@ type (
 
 	// PayerWithNameAndPhone struct
 	PayerWithNameAndPhone struct {
-		Name         *CreateOrderPayerName          `json:"name,omitempty"`
-		EmailAddress string                         `json:"email_address,omitempty"`
-		Phone        *PhoneWithType                 `json:"phone,omitempty"`
-		PayerID      string                         `json:"payer_id,omitempty"`
-		BirthDate    string                         `json:"birth_date,omitempty"`
-		TaxInfo      *TaxInfo                       `json:"tax_info,omitempty"`
-		Address      *ShippingDetailAddressPortable `json:"address,omitempty"`
+		Name         CreateOrderPayerName          `json:"name,omitempty"`
+		EmailAddress string                        `json:"email_address,omitempty"`
+		Phone        PhoneWithType                 `json:"phone,omitempty"`
+		PayerID      string                        `json:"payer_id,omitempty"`
+		BirthDate    string                        `json:"birth_date,omitempty"`
+		TaxInfo      TaxInfo                       `json:"tax_info,omitempty"`
+		Address      ShippingDetailAddressPortable `json:"address,omitempty"`
 	}
 
 	// CaptureOrderResponse is the response for capture order
 	CaptureOrderResponse struct {
 		ID            string                 `json:"id,omitempty"`
 		Status        string                 `json:"status,omitempty"`
-		Payer         *PayerWithNameAndPhone `json:"payer,omitempty"`
-		Address       *Address               `json:"address,omitempty"`
+		Payer         PayerWithNameAndPhone  `json:"payer,omitempty"`
+		Address       Address                `json:"address,omitempty"`
 		PurchaseUnits []CapturedPurchaseUnit `json:"purchase_units,omitempty"`
 	}
 
@@ -993,7 +1015,7 @@ type (
 	Payer struct {
 		PaymentMethod      string              `json:"payment_method"`
 		FundingInstruments []FundingInstrument `json:"funding_instruments,omitempty"`
-		PayerInfo          *PayerInfo          `json:"payer_info,omitempty"`
+		PayerInfo          PayerInfo           `json:"payer_info,omitempty"`
 		Status             string              `json:"payer_status,omitempty"`
 	}
 
@@ -1076,14 +1098,14 @@ type (
 	}
 
 	PaymentSourcePaypalExperienceContext struct {
-		PaymentMethodPreference string `json:"payment_method_preference"`
-		BrandName               string `json:"brand_name"`
-		Locale                  string `json:"locale"`
-		LandingPage             string `json:"landing_page"`
-		ShippingPreference      string `json:"shipping_preference"`
-		UserAction              string `json:"user_action"`
-		ReturnURL               string `json:"return_url"`
-		CancelURL               string `json:"cancel_url"`
+		PaymentMethodPreference string `json:"payment_method_preference,omitempty"`
+		BrandName               string `json:"brand_name,omitempty"`
+		Locale                  string `json:"locale,omitempty"`
+		LandingPage             string `json:"landing_page,omitempty"`
+		ShippingPreference      string `json:"shipping_preference,omitempty"`
+		UserAction              string `json:"user_action,omitempty"`
+		ReturnURL               string `json:"return_url,omitempty"`
+		CancelURL               string `json:"cancel_url,omitempty"`
 	}
 
 	// CardBillingAddress structure
@@ -1148,7 +1170,7 @@ type (
 	Refund struct {
 		ID            string     `json:"id,omitempty"`
 		Amount        *Amount    `json:"amount,omitempty"`
-		CreateTime    *time.Time `json:"create_time,omitempty"`
+		CreateTime    time.Time  `json:"create_time,omitempty"`
 		State         string     `json:"state,omitempty"`
 		CaptureID     string     `json:"capture_id,omitempty"`
 		ParentPayment string     `json:"parent_payment,omitempty"`
@@ -1158,10 +1180,19 @@ type (
 
 	// RefundResponse .
 	RefundResponse struct {
-		ID     string              `json:"id,omitempty"`
-		Amount *PurchaseUnitAmount `json:"amount,omitempty"`
-		Status string              `json:"status,omitempty"`
-		Links  []Link              `json:"links,omitempty"`
+		ID     string             `json:"id,omitempty"`
+		Amount PurchaseUnitAmount `json:"amount,omitempty"`
+		Status string             `json:"status,omitempty"`
+		Links  []Link             `json:"links,omitempty"`
+
+		CustomID  string `json:"custom_id,omitempty"`
+		InvoiceID string `json:"invoice_id,omitempty"`
+
+		NoteToPayer   string               `json:"note_to_payer,omitempty"`
+		StatusDetails CaptureStatusDetails `json:"status_details,omitempty"`
+
+		CreateTime time.Time `json:"create_time,omitempty"`
+		UpdateTime time.Time `json:"update_time,omitempty"`
 	}
 
 	// Related struct
